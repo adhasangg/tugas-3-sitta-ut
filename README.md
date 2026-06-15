@@ -50,4 +50,4 @@ npm run dev
 Buka URL berikut melalui peramban (browser) Anda:
 👉 **[http://localhost:3000](http://localhost:3000)**
 
-*Untuk melakukan ujicoba pada aplikasi web, Anda bisa melakukan login dengan akun dari seeder. (Contoh: `ahmad@ut.ac.id` dengan sandi `ahmad123`).*
+*Untuk melakukan ujicoba pada aplikasi web, Anda bisa melakukan login dengan akun dari seeder. (Contoh: `admin@ut.ac.id` dengan sandi `admin123`).*
