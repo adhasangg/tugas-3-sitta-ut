@@ -1,0 +1,70 @@
+<div class="page tracking-page">
+    <div class="page-header">
+        <div>
+            <h1>Tracking Delivery Order (DO)</h1>
+            <p class="subtitle">Pantau status pengiriman bahan ajar Anda secara real-time atau buat DO baru.</p>
+        </div>
+        <button class="btn btn-primary" @click="showAddDoModal = true">
+            <span class="icon">+</span> Buat DO Baru
+        </button>
+    </div>
+
+    <div class="search-card">
+        <h3>Cari Pengiriman</h3>
+        <form @submit.prevent="performSearch" class="form-tracking-vue" @keyup.esc="resetSearch">
+            <div class="search-input-group">
+                <input type="text" v-model="searchDoNumber" placeholder="Masukkan Nomor DO (misal: DO2025-001)" required>
+                <button type="submit" class="btn btn-primary search-btn">Cari</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="result-section" v-if="searchPerformed">
+        <div class="tracking-card-vue" v-if="searchedDoResult">
+            <div class="tracking-card-header">
+                <h2>Detail Pengiriman</h2>
+                <span class="badge badge-info">{{ searchedDoResult.status }}</span>
+            </div>
+
+            <div class="details-grid">
+                <div class="detail-item" v-for="(val, key) in searchedDoResult" :key="key" v-if="key !== 'perjalanan' && key !== 'id' && val">
+                    <span class="detail-label" v-text="key === 'nomorDO' ? 'Nomor DO' : (key === 'tanggalKirim' ? 'Tanggal Kirim' : key.charAt(0).toUpperCase() + key.slice(1))"></span>
+                    <span class="detail-value font-semibold text-primary" v-if="key === 'total'">
+                        {{ val | currency }}
+                    </span>
+                    <span class="detail-value" v-else>
+                        {{ val }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="timeline-section">
+                <h4>Riwayat Perjalanan</h4>
+                <div class="tracking-timeline-vue">
+                    <div class="timeline-item-vue" v-for="(item, index) in searchedDoResult.perjalanan" :key="index">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-time">{{ item.waktu }}</span>
+                            <p class="timeline-desc">{{ item.keterangan }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tracking-error-card" v-else>
+            <div class="error-icon">⚠️</div>
+            <h3>Nomor Delivery Order Tidak Ditemukan</h3>
+            <p>Silakan periksa kembali nomor DO yang Anda masukkan atau buat DO baru melalui tombol di kanan atas.</p>
+        </div>
+    </div>
+
+    <app-modal :show="showAddDoModal" :dynamic-content="true" title="Buat Delivery Order Baru" @close="showAddDoModal = false">
+        <order-form 
+            :trackingDb="trackingDb" 
+            @submit-do="handleNewDo" 
+            @cancel="showAddDoModal = false"
+            @notify="$emit('notify', $event)"
+        ></order-form>
+    </app-modal>
+</div>

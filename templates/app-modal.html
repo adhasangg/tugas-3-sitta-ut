@@ -1,0 +1,25 @@
+<div class="modal-overlay" v-if="dynamicContent ? show : true" v-show="!dynamicContent ? show : true" :style="isAlert ? 'z-index: 10001;' : ''">
+    <div class="modal-box" :class="{'alert-box': isAlert}" :style="isAlert ? 'max-width: 400px; text-align: center; padding: 32px;' : ''">
+        <div class="modal-header" v-if="!isAlert">
+            <h2>{{ title }}</h2>
+            <button class="close-btn" @click="$emit('close', false)">×</button>
+        </div>
+
+        <div class="alert-icon-wrapper" :class="'alert-icon-' + alertType" v-if="isAlert">
+            <span v-if="alertType === 'success'">✓</span>
+            <span v-else-if="alertType === 'error'">✗</span>
+            <span v-else-if="alertType === 'confirm'">?</span>
+            <span v-else>!</span>
+        </div>
+        <h3 v-if="isAlert" style="margin-top: 16px; font-size: 18px; font-weight: 700; color: #0f172a;">{{ title }}</h3>
+
+        <div :class="!isAlert ? 'modal-body' : ''">
+            <slot></slot>
+        </div>
+
+        <div class="alert-actions" style="margin-top: 24px; display: flex; justify-content: center; gap: 12px;" v-if="isAlert">
+            <button class="btn btn-secondary" v-if="alertType === 'confirm'" @click="$emit('close', false)">Batal</button>
+            <button class="btn btn-primary" @click="$emit('close', true)">OK</button>
+        </div>
+    </div>
+</div>

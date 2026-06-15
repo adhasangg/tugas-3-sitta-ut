@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>SITTA - Portal Bahan Ajar UT (Vue Refactored)</title>
+  </head>
+  <body>
+    <div id="app">
+      <header v-if="loggedInUser">
+        <nav class="container">
+          <div class="logo">
+            <a href="#home"
+              >SITTA <span>UT</span></a
+            >
+          </div>
+          <ul class="menu">
+            <li class="menu-item" :class="{active: currentTab === 'home'}">
+              <a href="#home">Dashboard</a>
+            </li>
+            <li class="menu-item" :class="{active: currentTab === 'stok'}">
+              <a href="#stok">Stok Bahan Ajar</a>
+            </li>
+            <li class="menu-item" :class="{active: currentTab === 'tracking'}">
+              <a href="#tracking">Tracking Pengiriman</a>
+            </li>
+          </ul>
+        </nav>
+      </header>
+
+      <main class="container">
+        <div
+          class="page dashboard-page"
+          v-if="loggedInUser && currentTab === 'home'"
+        >
+          <div class="welcome-banner">
+            <div class="welcome-text">
+              <h1>
+                {{ greeting }},
+                <span class="user-name">{{ loggedInUser.nama }}</span>!
+              </h1>
+              <p class="role-badge">
+                {{ loggedInUser.role }} • {{ loggedInUser.lokasi }}
+              </p>
+            </div>
+            <button class="btn btn-secondary-outline" @click="handleLogout">
+              Keluar (Logout)
+            </button>
+          </div>
+
+          <div class="dashboard-simple-content">
+            <div class="info-card">
+              <h3>SITTA UT - Sistem Informasi Logistik</h3>
+              <p>
+                Selamat datang di portal logistik bahan ajar Universitas
+                Terbuka. Gunakan menu navigasi di atas untuk mengakses fitur:
+              </p>
+              <ul>
+                <li>
+                  <strong>Informasi Bahan Ajar:</strong> Untuk mengelola data
+                  ketersediaan stok, filter lokasi rak, reorder warning, dan
+                  menambah data bahan ajar baru.
+                </li>
+                <li>
+                  <strong>Tracking Pengiriman:</strong> Untuk melacak status
+                  pengiriman DO bahan ajar dan membuat input delivery order
+                  baru.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <ba-stock-table
+          v-if="loggedInUser && currentTab === 'stok'"
+          @notify="handleNotification"
+          @confirm="handleConfirm"
+        >
+        </ba-stock-table>
+
+        <do-tracking
+          v-if="loggedInUser && currentTab === 'tracking'"
+          @notify="handleNotification"
+        >
+        </do-tracking>
+
+        <div id="login-page" v-if="!loggedInUser">
+          <div class="login-card-container">
+            <div class="brand-logo">SITTA <span>UT</span></div>
+            <div class="login-form">
+              <h1>Selamat Datang</h1>
+              <p class="login-subtitle">
+                Silakan masuk ke portal logistik bahan ajar Universitas Terbuka
+              </p>
+
+              <form @submit.prevent="handleLogin">
+                <div class="input-group">
+                  <label for="email">Alamat Email</label>
+                  <input
+                    type="email"
+                    id="email"
+                    v-model="email"
+                    placeholder="email@ut.ac.id"
+                    required
+                  />
+                </div>
+                <div class="input-group">
+                  <div class="password-label-wrapper">
+                    <label for="password">Kata Sandi</label>
+                    <button
+                      class="forgot-password"
+                      type="button"
+                      @click="openResetModal"
+                      v-if="showForgotPasswordBtn"
+                    >
+                      Lupa Password?
+                    </button>
+                  </div>
+                  <input
+                    type="password"
+                    id="password"
+                    v-model="password"
+                    placeholder="••••••••"
+                    required
+                  />
+                </div>
+
+                <div class="login-error-msg" v-if="loginError">
+                  {{ loginError }}
+                </div>
+
+                <div class="actions">
+                  <button type="submit" class="btn btn-primary btn-full">
+                    Masuk
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-text btn-full"
+                    @click="openRegisterModal"
+                  >
+                    Belum Punya Akun? Daftar
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <app-modal
+        :show="alertActive"
+        :dynamic-content="false"
+        :is-alert="true"
+        :alert-type="alertType"
+        :title="alertTitle"
+        @close="closeAlert"
+      >
+        <p
+          style="
+            margin-top: 8px;
+            font-size: 14px;
+            color: #64748b;
+            line-height: 1.5;
+          "
+        >
+          {{ alertMessage }}
+        </p>
+      </app-modal>
+
+      <app-modal
+        :show="showResetModal"
+        :dynamic-content="true"
+        title="Reset Password"
+        @close="showResetModal = false"
+      >
+        <form @submit.prevent="handleResetPassword">
+          <p class="modal-desc" style="margin-bottom: 20px">
+            Masukkan alamat email terdaftar Anda untuk mengirim instruksi reset
+            kata sandi.
+          </p>
+
+          <div class="input-group" :class="{'has-error': resetEmailError}">
+            <label for="resetEmail">Email Terdaftar</label>
+            <input
+              type="email"
+              id="resetEmail"
+              v-model="resetEmail"
+              placeholder="email@ut.ac.id"
+              required
+            />
+            <span class="error-msg" v-if="resetEmailError"
+              >Email tidak terdaftar dalam sistem.</span
+            >
+          </div>
+
+          <div
+            class="form-actions"
+            style="
+              margin-top: 24px;
+              display: flex;
+              justify-content: flex-end;
+              gap: 12px;
+            "
+          >
+            <button
+              type="button"
+              class="btn btn-secondary"
+              @click="showResetModal = false"
+            >
+              Batal
+            </button>
+            <button type="submit" class="btn btn-primary">
+              Kirim Instruksi
+            </button>
+          </div>
+        </form>
+      </app-modal>
+
+      <app-modal
+        :show="showRegisterModal"
+        :dynamic-content="true"
+        title="Registrasi Akun SITTA"
+        @close="showRegisterModal = false"
+      >
+        <form @submit.prevent="handleRegister" class="grid-form">
+          <div class="input-group">
+            <label for="reg-nama">Nama Lengkap</label>
+            <input
+              type="text"
+              id="reg-nama"
+              v-model="register.nama"
+              placeholder="Ahmad Prasetyo"
+              required
+            />
+          </div>
+
+          <div class="input-group" :class="{'has-error': registerEmailError}">
+            <label for="reg-email">Email UT</label>
+            <input
+              type="email"
+              id="reg-email"
+              v-model="register.email"
+              placeholder="ahmad@ut.ac.id"
+              required
+            />
+            <span class="error-msg" v-if="registerEmailError"
+              >Email sudah terdaftar. Gunakan email lain.</span
+            >
+          </div>
+
+          <div class="input-group">
+            <label for="reg-password">Kata Sandi</label>
+            <input
+              type="password"
+              id="reg-password"
+              v-model="register.password"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+
+          <div class="input-group">
+            <label for="reg-role">Role Akses</label>
+            <select id="reg-role" v-model="register.role">
+              <option value="UPBJJ-UT">UPBJJ-UT</option>
+              <option value="Puslaba">Puslaba</option>
+              <option value="Fakultas">Fakultas</option>
+            </select>
+          </div>
+
+          <div class="input-group full-width">
+            <label for="reg-lokasi">Lokasi Tugas (UPBJJ / Kantor Cabang)</label>
+            <input
+              type="text"
+              id="reg-lokasi"
+              v-model="register.lokasi"
+              placeholder="UPBJJ Jakarta"
+              required
+            />
+          </div>
+
+          <div
+            class="form-actions full-width"
+            style="
+              margin-top: 24px;
+              display: flex;
+              justify-content: flex-end;
+              gap: 12px;
+            "
+          >
+            <button
+              type="button"
+              class="btn btn-secondary"
+              @click="showRegisterModal = false"
+            >
+              Batal
+            </button>
+            <button type="submit" class="btn btn-primary">Daftar Akun</button>
+          </div>
+        </form>
+      </app-modal>
+
+      <app-loader :show="isLoading"></app-loader>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="js/services/api.js"></script>
+    <script src="js/components/app-loader.js"></script>
+    <script src="js/components/app-modal.js"></script>
+    <script src="js/components/app-tooltip.js"></script>
+    <script src="js/components/status-badge.js"></script>
+    <script src="js/components/order-form.js"></script>
+    <script src="js/components/stock-table.js"></script>
+    <script src="js/components/do-tracking.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

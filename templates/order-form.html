@@ -1,0 +1,64 @@
+<form @submit.prevent="submitDO" class="grid-form">
+    <div class="input-group full-width">
+        <label>Nomor DO (Otomatis)</label>
+        <input type="text" :value="generatedDoNumber" disabled class="input-disabled">
+        <span class="help-text">Nomor DO di-generate secara otomatis berdasarkan format tahun berjalan & sequence.</span>
+    </div>
+
+    <div class="input-group" :class="{'has-error': errors.nim}">
+        <label for="form-nim">NIM Mahasiswa</label>
+        <input type="text" id="form-nim" v-model="form.nim" placeholder="123456789">
+        <span class="error-msg" v-if="errors.nim">{{ errors.nim }}</span>
+    </div>
+
+    <div class="input-group" :class="{'has-error': errors.nama}">
+        <label for="form-nama">Nama Mahasiswa</label>
+        <input type="text" id="form-nama" v-model="form.nama" placeholder="Rina Wulandari">
+        <span class="error-msg" v-if="errors.nama">{{ errors.nama }}</span>
+    </div>
+
+    <div class="input-group" :class="{'has-error': errors.ekspedisi}">
+        <label for="form-ekspedisi">Ekspedisi</label>
+        <select id="form-ekspedisi" v-model="form.ekspedisi">
+            <option value="JNE Regular">JNE Regular</option>
+            <option value="JNE Express">JNE Express</option>
+        </select>
+        <span class="error-msg" v-if="errors.ekspedisi">{{ errors.ekspedisi }}</span>
+    </div>
+
+    <div class="input-group" :class="{'has-error': errors.paketKode}">
+        <label for="form-paket">Paket Bahan Ajar</label>
+        <select id="form-paket" v-model="form.paketKode">
+            <option value="">-- Pilih Paket --</option>
+            <option v-for="p in paketList" :key="p.kode" :value="p.kode">
+                {{ p.kode }} - {{ p.nama }}
+            </option>
+        </select>
+        <span class="error-msg" v-if="errors.paketKode">{{ errors.paketKode }}</span>
+    </div>
+
+    <div class="info-box full-width" v-if="selectedPaketDetails">
+        <h4>Isi Paket:</h4>
+        <ul>
+            <li v-for="matkul in selectedPaketDetails.isi" :key="matkul">
+                <code>{{ matkul }}</code>
+            </li>
+        </ul>
+    </div>
+
+    <div class="input-group" :class="{'has-error': errors.tanggalKirim}">
+        <label for="form-tanggal">Tanggal Kirim</label>
+        <input type="date" id="form-tanggal" v-model="form.tanggalKirim">
+        <span class="error-msg" v-if="errors.tanggalKirim">{{ errors.tanggalKirim }}</span>
+    </div>
+
+    <div class="input-group">
+        <label>Total Harga</label>
+        <input type="text" :value="formTotalHarga | currency" disabled class="input-disabled font-semibold">
+    </div>
+
+    <div class="form-actions full-width">
+        <button type="button" class="btn btn-secondary" @click="$emit('cancel')">Batal</button>
+        <button type="submit" class="btn btn-primary">Buat DO</button>
+    </div>
+</form>

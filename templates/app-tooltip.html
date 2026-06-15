@@ -1,0 +1,4 @@
+<div class="tooltip-wrapper" @mouseenter="show" @mouseleave="hide">
+    <slot></slot>
+    <div class="tooltip-box" v-if="visible && content" v-html="content"></div>
+</div>
